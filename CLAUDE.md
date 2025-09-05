@@ -1,121 +1,131 @@
-## Development Best Practices from Cursor Rules
+# CLAUDE.md
 
-### Code Quality Principles
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Write clean, simple, readable code with clear reasoning
-- Implement features in the simplest possible way possible
-- Keep files small and focused (<200 lines)
-- Test after every meaningful change
-- Use clear, consistent naming conventions
-- ALWAYS ask follow-up questions to clarify requirements before coding
-- Write modular, well-documented code with explanatory comments
-- One abstraction layer per file - controllers call services, services call utils/db
+## Project Overview
 
-### Error Handling Best Practices
+Graphite is a multimodal AI chat application MVP built with:
+- **Backend**: Python FastAPI with Prisma ORM and PostgreSQL
+- **Frontend**: React 18 + TypeScript with Vite
+- **Architecture**: Full-stack web app focused on chat functionality
 
-- DO NOT JUMP TO CONCLUSIONS when debugging - consider multiple possible causes
-- Make only minimal necessary changes when fixing issues
-- Use structured logging with appropriate log levels (debug/info/warn/error)
-- Implement proper error boundaries in React components
-- Prefer async/await + try/catch patterns over promises
+## Essential Commands
 
-### Project-Specific Conventions
+### Development Startup
+```bash
+./start.sh  # Start both backend (port 8001) and frontend (port 5173)
+```
+This is the primary development command. It automatically:
+- Sets up Python virtual environment (`backend/venv/`)
+- Generates Prisma client
+- Starts both services with proper cleanup on exit
 
-- Use explicit TypeScript types everywhere - `any` is banned
-- Include LOTS of explanatory comments - document the "why" not just the "what"
-- Follow feature-based directory structure in both backend and frontend
-- All new code must include unit tests and pass lint checks
+### Backend Development
+```bash
+cd backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8001  # Direct backend start
+python -m prisma generate  # After schema changes
+```
 
-### File Organization Rules
+### Frontend Development
+```bash
+cd frontend
+npm run dev      # Development server (port 3000)
+npm run build    # Production build
+npm run preview --port 4173  # Preview build
+```
 
-- Backend services: Pure, reusable business logic (unit test these directly)
-- Controllers: Thin request/response orchestration (keep business-logic free)
-- Frontend: Feature-based structure for components/pages/contexts/hooks
+## Architecture & Code Organization
 
-## Additional Important Guidelines
+### Backend Structure (`backend/app/`)
+- `main.py` - FastAPI entry point with CORS and health endpoints
+- `core/` - Configuration and database setup
+- `routes/` - API endpoint definitions (currently `/api/chat`)
+- `services/` - Business logic layer
+- `models/` - Data models via Prisma schema
 
-### Code Quality Standards
+### Frontend Structure (`frontend/src/`)
+- `main.tsx` - React entry point
+- `pages/` - Page components
+- Built with Vite for fast development and optimized builds
 
-- Backend: Jest with 70% coverage requirement
-- Frontend: Vitest + React Testing Library with 70% coverage requirement
-- Use ESLint and TypeScript strict mode
-- Follow existing import patterns and project conventions
-- Input validation should use Zod schemas
+### Database
+- PostgreSQL with Prisma ORM (`prisma-client-py`)
+- Schema: `backend/prisma/schema.prisma`
+- Models: `ChatSession` and `Message` with proper relationships
+- Uses `cuid()` for IDs and cascade deletes
 
-### Python Environment Management
+## Development Workflow
 
-- Python virtual environment is located at `backend/venv/`
-- Requirements managed via `backend/requirements.txt`
-- PydanticAI agents require proper Python environment setup
-- Use `npm run ops:health` to check agent status
+### After Making Changes
+1. **Start Services**: Verify `./start.sh` works without errors
+2. **Test Endpoints**: Check `/health` and `/ready` endpoints
+3. **TypeScript**: Ensure frontend compiles without errors
+4. **Build Check**: Run `npm run build` in frontend for production builds
 
-### Security Requirements
+### Database Schema Changes
+1. Edit `backend/prisma/schema.prisma`
+2. Run `python -m prisma generate` to update client
+3. Handle migrations appropriately for your environment
 
-- JWT-based authentication with access/refresh tokens
-- Company-level data isolation enforced at database level
-- Rate limiting on all public endpoints
-- Helmet.js for security headers
-- Never commit API keys or secrets
-- AWS Secrets Manager integration for database credentials
+### Environment Variables
+- `DATABASE_URL` - PostgreSQL connection string
+- `CORS_ORIGIN` - Frontend URL for CORS configuration
 
-# Critical Behavior Guidelines
+## Code Conventions
 
-These are non-negotiable rules for working in this codebase:
+### File Documentation
+Each file includes a header with purpose, dependencies, and metadata:
+```python
+'''
+File: app/main.py
+Purpose: FastAPI entry point for Graphite MVP
+Dependencies: fastapi
+Imports: FastAPI, CORSMiddleware, settings
+Exports: app (FastAPI application)
+Created: 2025-09-05
+'''
+```
 
-## Task Execution Rules
-- **Scope Discipline**: Do exactly what has been asked; nothing more, nothing less
-- **File Creation**: NEVER create files unless absolutely necessary for your goal
-- **File Preference**: ALWAYS prefer editing existing files over creating new ones
-- **Documentation**: NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+### API Patterns
+- Router-based organization with prefixes and tags
+- Standard health endpoints (`/health`, `/ready`)
+- CORS configured via settings
 
-## Safety-Critical Database Rules
-- **NEVER run migrations** on shared/live databases - use SQL patches via AWS Secrets wrapper
-- **ALWAYS validate** database changes with idempotent SQL statements
-- **ALWAYS run** `npm run generate` after schema changes
-- **Local development exception**: You MAY use `migrate:dev` only on disposable local databases
+### Database Patterns
+- Proper model relationships with cascade deletes
+- Timestamp fields (`createdAt`, `updatedAt`)
+- Enum types for constrained values (`MessageRole`)
 
-## Code Quality Requirements  
-- **Always run tests** before considering work complete (`npm test` for full suite)
-- **Always check linting** with `npm run lint:all` (covers TypeScript + Python)
-- **Always use Python environment** via `./start.sh` for backend development
-- **Always validate Docker builds** after major changes using BuildKit no-cache builds
+## Current Limitations (MVP Stage)
 
-# Working Style Guidelines
+This is an early-stage MVP. The following are not yet implemented:
+- Testing framework (Jest, Vitest, pytest)
+- Linting/formatting (ESLint, Prettier, Black)
+- CI/CD pipelines
+- Comprehensive error handling
+- Authentication/authorization
+- Rate limiting
+- Input validation schemas
 
-When working with this codebase:
+## Technology Stack Details
 
-### Code Quality & Architecture
-- **Think like a senior/"10x" engineer**: design-first, simplify, and prove correctness with tests
-- **Work step-by-step and validate** each step (build/tests/lints) before moving on
-- **Prefer the smallest viable, composable change** - keep edits tight and focused
-- **Controllers are thin** - business logic lives in services; utilities are pure and reusable
-- **Keep files focused (≤200 LOC)** - extract helpers early, no massive "god" files
-- **Use explicit TypeScript types everywhere** - `any` is banned
+### Backend Dependencies
+- `fastapi` - Web framework
+- `uvicorn` - ASGI server
+- `prisma` - Database ORM
+- `pydantic` - Data validation
+- `openai` - AI integration
+- `chromadb` - Vector storage
+- `boto3` - AWS services
 
-### Database Change Policy (CRITICAL)
-- **Do NOT run Prisma migrations** on shared/live databases - this can drop or rewrite data
-- **Apply idempotent SQL patches instead**, executed via the AWS Secrets wrapper:
-  ```bash
-  ts-node src/scripts/run-with-secrets.ts npx prisma db execute --file /absolute/path/to.sql --schema prisma/schema.prisma
-  ```
-- **Prefer safe statements** like `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`
-- **Keep `prisma/schema.prisma` authoritative** and run `npm run generate` after changes
-- **You MAY use `npm run migrate:dev`** only against local, disposable dev databases
+### Frontend Dependencies  
+- `react` - UI framework
+- `typescript` - Type safety
+- `vite` - Build tool and dev server
 
-### Quality Gates & Validation
-- **Every change ships with tests** as appropriate and passes lint/typecheck
-- **Before completing**: run build, tests, and linters relevant to the change; fix what you broke
-- **After major edits**, perform Docker BuildKit no-cache builds for backend and frontend to catch container-only failures
-- **Respect multi-tenant boundaries**: enforce auth, rate limits, and validation
+## Health Monitoring
 
-### Error Handling & Debugging
-- **DO NOT JUMP TO CONCLUSIONS** when debugging - consider multiple possible causes
-- **Make only minimal necessary changes** when fixing issues
-- **Use structured logging** with appropriate log levels (debug/info/warn/error)
-- **Implement proper error boundaries** in React components
-- **Prefer async/await + try/catch** patterns over promises
-
-### Security & Compliance
-- **Never commit secrets** - prefer AWS Secrets Manager as source of truth
-- **JWT auth, company isolation, rate limiting, Helmet, and Zod input validation** must remain intact
-- **Avoid dynamic code execution** in hot paths; keep control-flow predictable
+- Backend: `GET /health` and `GET /ready`
+- Manual verification of core functionality required
+- No automated health checks configured yet

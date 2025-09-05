@@ -1,0 +1,44 @@
+//
+// File: backend/prisma/schema.prisma
+// Purpose: Minimal Prisma schema for chat persistence (MVP)
+// Dependencies: Prisma, PostgreSQL
+// Exports: ChatSession, Message models
+// Created: 2025-09-05
+// Last Modified: 2025-09-05
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Message[]
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  sessionId  String
+  role       MessageRole
+  content    String
+  createdAt  DateTime @default(now())
+
+  session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+
