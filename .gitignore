@@ -119,3 +119,9 @@ temp/
 # Local secrets and config files
 secrets.json
 config.local.js
+
+# AI assistant/editor local metadata
+.serena
+.serena/
+.cursor
+.cursor/
