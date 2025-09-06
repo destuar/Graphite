@@ -125,3 +125,4 @@ config.local.js
 .serena/
 .cursor
 .cursor/
+.claude/

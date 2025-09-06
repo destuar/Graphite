@@ -30,24 +30,32 @@ python -m prisma generate  # After schema changes
 ### Frontend Development
 ```bash
 cd frontend
-npm run dev      # Development server (port 3000)
 npm run build    # Production build
-npm run preview --port 4173  # Preview build
+npm run preview  # Preview build (port 4173)
+npm run dev      # Development server (port 3000) - prefer ./start.sh from root
+# Note: Use ./start.sh from root directory for integrated development
 ```
 
 ## Architecture & Code Organization
 
 ### Backend Structure (`backend/app/`)
 - `main.py` - FastAPI entry point with CORS and health endpoints
-- `core/` - Configuration and database setup
+- `core/` - Configuration (`config.py`), database (`database.py`), secrets, storage
 - `routes/` - API endpoint definitions (currently `/api/chat`)
 - `services/` - Business logic layer
-- `models/` - Data models via Prisma schema
+  - `llm_router.py` - Provider-agnostic LLM routing (OpenAI, Anthropic, Gemini, Perplexity)
+  - `chat_persist.py` - Chat session persistence
+  - `adapters/` - LLM provider implementations
+- `models/` - Pydantic models for API contracts
 
 ### Frontend Structure (`frontend/src/`)
 - `main.tsx` - React entry point
-- `pages/` - Page components
-- Built with Vite for fast development and optimized builds
+- `pages/App.tsx` - Main application component
+- `components/` - React components
+  - `ChatInterface.tsx` - Main chat container with session management
+  - `ChatArea.tsx` - Message display and input area
+  - `ChatSidebar.tsx` - Session list and navigation
+- Built with Vite, TypeScript, and Tailwind CSS
 
 ### Database
 - PostgreSQL with Prisma ORM (`prisma-client-py`)
